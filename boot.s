@@ -1,10 +1,10 @@
-.section .vectors
+.section .vector_table
 .org 0x0 reset_handler
 .org 0x08 swi_handler
 .org 0x18 irq_handler
 .org 0x1c fiq_handler 
 
-.section .vector_table
+.section .vector_handlers
 .eq SVC_MODE #0x13
 .eq IRQ_MODE #0x12
 .eq FIQ_MODE #0x11
@@ -55,7 +55,7 @@ fiq_handler:
 # 0: timer 0 period --> 0 pri.
 # 1: mini uart has a valid byte in fifo --> 3 pri.
 # 2: mini uart transmitter is free --> 4 pri. 
-# 3: mini uart reciever overrun (rx fifo panic) --> 2 pri.
+# 3: mini uart receiver overrun (rx fifo panic) --> 2 pri.
 # 4: void irq --> 1 pri.
 # 5: unkown irq -- pri 5. 
     
@@ -106,14 +106,14 @@ irq_routine_identifier:
     moveq pc,lr
 
 
-irq_handler: # reentrant irq
+irq_handler: # reentrant irq handler
     subs lr,#4 # link register calculation.
     
     stmfd r13!,{lr,r0~r2}
     msr spsr_irq, r0 
-    str spsr_irq,[r13]  # minimum context saved.
     subs r13,#4
-
+    str spsr_irq,[r13]  # minimum context saved.
+    
     bl irq_routine_identifier # find triggred irq.    
 
     mov r1,r13 # save stack address to r1 (for passing to svc mode).
@@ -131,8 +131,13 @@ irq_handler: # reentrant irq
     mul r1,r1,r2
     add r1,=IRQ_TABLE # find ISR address via IRQ_TABLE.
 
+    subs r13,#4
+    str pc,[r13]
     mov pc,r1 # go to ISR.
-    # note: we should add a return instruction to link register in end of ISR (for returning to return address).
+
+    # note: we should add a return instruction to this bloack in end of ISR (for returning to return address).
+    ldmfd r13!,{r2,r1,r0,lr}
+    mov pc,lr # back to tasks address    
 
 swi_handler:
     bl swi_handler # dummy handler.
