@@ -38,7 +38,7 @@
 
 .eq SYSTEM_STAT
 .eq SYSTEM_STAT_IRQ_FALL_COUNT
-.eq SERIAL_CHAR_MISS
+.eq SYSTEM_STAT_SERIAL_CHAR_MISS
 
 .eq VOID_IRQ
 
@@ -71,9 +71,17 @@ mini_uart_valid_byte:
     ldreq r0,[r13],#4
     ldreq pc,[r0]
 
-    ldr r2,[r2]
+    ldr r2,[r2] # point to buffer size.
     ldr r1,[r1] # point to buffer length.
     ldr r0,[r0] # point to buffer.
+    cmp r1,r2
+
+    ldrge r0,[=SYSTEM_STAT,=SYSTEM_STAT_SERIAL_CHAR_MISS]
+    add r0,r0,#1
+    strge r0,[=SYSTEM_STAT,=SYSTEM_STAT_SERIAL_CHAR_MISS]
+    ldrge r0,[r13],#4
+    ldrge pc,[r0]
+
     ldrb r3,[=MINI_UART_BASE,=MINI_UART_MU_IO] # read byte.
     
     strb r3,[=MINI_UART_LICENSE_RX_BUFFER,r1] # store readed byte info buffer.
@@ -90,9 +98,9 @@ mini_uart_receiver_overrun:
 
     ldrb r0,[=MINI_UART_LICENSE,=MINI_UART_MU_IO] # discard current bit.
 
-    ldrh r0,[=SYSTEM_STAT,=SERIAL_CHAR_MISS] # read char misses in system.
+    ldrh r0,[=SYSTEM_STAT,=SYSTEM_STAT_SERIAL_CHAR_MISS] # read char misses in system.
     add r0,r0,#1 # increment char misses.
-    strh r0,[=SYSTEM_STAT,=SERIAL_CHAR_MISS] # apply new char miss to system status.
+    strh r0,[=SYSTEM_STAT,=SYSTEM_STAT_SERIAL_CHAR_MISS] # apply new char miss to system status.
     
     ldr r0,[r13],#4
     ldr pc,[r0]
