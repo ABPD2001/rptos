@@ -33,20 +33,25 @@
 
 reset_handler:
     mov r13,=SVC_STACK
+    
     mrs cpsr_c,r0
     and r0,=CLR_MODE
     orr r0,=IRQ_MODE
     mrs r0,cpsr_c
     mov r13,IRQ_STACK
+    
     mrs cpsr_c,r0
     and r0,=CLR_MODE
     orr r0,=FIQ_MODE
     mrs r0,cpsr_c
     mov r13,=FIQ_STACK
+    
     mrs cpsr_c,r0
     and r0,=CLR_MODE
     orr r0,=SVC_MODE
     mrs r0,cpsr_c
+
+    b kernel # start kernel 
 
 fiq_handler:
     bl fiq_handler # dummy handler.
@@ -111,7 +116,7 @@ irq_handler: # reentrant irq handler
     
     stmfd r13!,{lr,r0~r2}
     msr spsr_irq, r0 
-    str r0,[r13,#-4]!  # minimum context saved.
+    str r0,[r13,-#4]!  # minimum context saved.
     
     bl irq_routine_identifier # find triggred irq.    
 
@@ -130,35 +135,35 @@ irq_handler: # reentrant irq handler
     mul r1,r1,r2
     add r1,=IRQ_TABLE # find ISR address via IRQ_TABLE.
 
-    str pc,[r13,#-4]!
+    str pc,[r13,-#4]!
     mov pc,r1 # go to ISR.
 
     # note: we should add a return instruction to this block in end of ISR (for returning to return address).
     ldmfd r13!,{r2,r1,r0,lr}
     mov pc,lr # back to tasks address   
 
-    b kernel # start kernel 
 
 swi_handler:
     stmfd r13!,{lr,r0~r2}
     msr spsr_svc, r0 
-    str r0,[r13,#-4]!  # minimum context saved.
+    str r0,[r13,-#4]!  # minimum context saved.
     
     and r2,lr,#0x000F # read requested swi id.
 
     mov r1,r13 # save stack address to r1 (for passing to svc mode).
     msr cpsr_c,r0
-    orr r0,=IRQ_ENABLE
+    orr r0,r0,=IRQ_ENABLE
     mrs r0,cpsr_c # apply to enable irqs.
 
     mov r0,r1 # pass stack to first argument.
     mov r1,#4
     mul r1,r1,r2
-    add r1,=SWI_TABLE # find ISR address via SWI_TABLE.
+    add r1,r1,=SWI_TABLE # find ISR address via SWI_TABLE.
     mov lr,r1
 
-    str pc,[r13,#-4]!
+    str pc,[r13,-#4]!
     ldmfd r13!,{r2,r1,r0}
+    str pc,[r13,#-4]!
     mov pc,lr # go to routine.
 
     # note: we should add a return instruction to this block in end of routine (for returning to return address).

@@ -6,11 +6,9 @@
 .org 0x10 ldr pc,=void_irq
 .org 0x14 ldr pc,=unkown_irq
 
-.section irq_routines
-.eq MINI_UART_RX_BUFFER
-.eq MINI_UART_LICENSE 
+.section irq_routines 
 # a byte for owned task_id
-# also includes these in a byte:
+# bare-status includes these in a byte:
 # 1- tx fifo empty.
 # 2- rx buffer panic/overflow. 
 # 3- tx enabled.
@@ -23,22 +21,25 @@
 # four byte for uart buffer length.
 # a four byte for rx buffering topics that includes:
 # 1- receiver overrun.
-# 2- uart buffer size.
-# 3- one byte free space at least.
-# 4~8- reserved.
+# 2- one byte free space at least. 
+# 3~8- reserved.
 # (3 bytes reserved.)
 
-.eq MINI_UART_LICENSE_RX_BUFFER_STAT #0x8
-.eq MINI_UART_LICENSE_OWNED_TASK_ID #0x7
-.eq MINI_UART_LICENSE_BARE_STATUS #0x6
-.eq MINI_UART_LICENSE_BAUDRATE #0x4
-.eq MINI_UART_LICENSE_RX_BUFFER_LEN #0x0
+.eq MINI_UART_LICENSE_RX_BUFFER_STAT #0xE
+.eq MINI_UART_LICENSE_OWNED_TASK_ID #0xC
+.eq MINI_UART_LICENSE_BARE_STATUS #0xB
+.eq MINI_UART_LICENSE_BAUDRATE #0xA
+.eq MINI_UART_LICENSE_RX_BUFFER_SIZE #0x8
+.eq MINI_UART_LICENSE_RX_BUFFER_LEN #0x4
+.eq MINI_UART_LICENSE_RX_BUFFER #0x0
 
 .eq MINI_UART_BASE #0x7E21
 .eq MINI_UART_MU_IO #0x5040
 
 .eq SYSTEM_STAT
 .eq SYSTEM_STAT_IRQ_FALL_COUNT
+.eq SERIAL_CHAR_MISS
+
 .eq VOID_IRQ
 
 mini_uart_tx_empty:
@@ -52,32 +53,47 @@ mini_uart_tx_empty:
     ldr pc,[r0] # back to irq handler.
 
 mini_uart_valid_byte: 
-    str r0,[r13,#-4]!
-    
-    ldr r1,[=MINI_UART_LICENSE,=MINI_UART_LICENSE_RX_BUFFER_LEN]
-    ldr r0,[=MINI_UART_LICENSE,=MINI_UART_RX_BUFFER_STAT] # check rx buffer if is free.
-    and r0,r0,#0x4
-    cmp r0,#0x4
+    stmfd r13!,{r0,r3}
 
+    ldr r2,[=MINI_UART_LICENSE,=MINI_UART_LICENSE_RX_BUFFER_LEN] # check if buffer even created (by size).
+    ldr r1,[=MINI_UART_LICENSE,=MINI_UART_LICENSE_RX_BUFFER_LEN] # check if buffer even created (by size).
+    ldr r0,[=MINI_UART_LICENSE,=MINI_UART_LICENSE_RX_BUFFER] # check if buffer even created.
+    
+    cmp r0,#0
     ldreq r0,[r13],#4
     ldreq pc,[r0] # back to irq handler.
-    ldrb r0,[=MINI_UART_BASE,=MINI_UART_MU_IO] # read byte.
-    strb r0,[=MINI_UART_LICENSE,r1]
-    add r1,r1,#1 # update length of buffer.
-    str r1,[=MINI_UART_LICENSE,=MINI_UART_LICENSE_RX_BUFFER_LEN] # store current length.
 
-    ldr r0,[r13],#4
+    cmp r1,#0
+    ldreq r0,[r13],#4
+    ldreq pc,[r0]
+
+    cmp r2,#0
+    ldreq r0,[r13],#4
+    ldreq pc,[r0]
+
+    ldr r2,[r2]
+    ldr r1,[r1] # point to buffer length.
+    ldr r0,[r0] # point to buffer.
+    ldrb r3,[=MINI_UART_BASE,=MINI_UART_MU_IO] # read byte.
+    
+    strb r3,[=MINI_UART_LICENSE_RX_BUFFER,r1] # store readed byte info buffer.
+    add r1,r1,#1 # update length of buffer.
+
+    ldr r0,[=MINI_UART_LICENSE,=MINI_UART_LICENSE_RX_BUFFER_LEN] # get pointer of buffer length.
+    str r1,[r0] # store current length to pointed --> rx buffer length.
+
+    ldmfd r13!,{r3,r0}
     ldr pc,[r0]
 
 mini_uart_receiver_overrun:
     str r0,[r13,#-4]!
 
     ldrb r0,[=MINI_UART_LICENSE,=MINI_UART_MU_IO] # discard current bit.
-    ldr r1,[=MINI_UART_LICENSE,=MINI_UART_LICENSE_RX_BUFFER_LEN]
-    strb #0,[=MINI_UART_LICENSE,r1]
-    add r1,r1,#1 # update length of buffer.
-    str r1,[=MINI_UART_LICENSE,=MINI_UART_LICENSE_RX_BUFFER_LEN] # store current length.
 
+    ldrh r0,[=SYSTEM_STAT,=SERIAL_CHAR_MISS] # read char misses in system.
+    add r0,r0,#1 # increment char misses.
+    strh r0,[=SYSTEM_STAT,=SERIAL_CHAR_MISS] # apply new char miss to system status.
+    
     ldr r0,[r13],#4
     ldr pc,[r0]
 
