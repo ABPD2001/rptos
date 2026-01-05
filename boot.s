@@ -135,7 +135,9 @@ irq_handler: # reentrant irq handler
 
     # note: we should add a return instruction to this block in end of ISR (for returning to return address).
     ldmfd r13!,{r2,r1,r0,lr}
-    mov pc,lr # back to tasks address    
+    mov pc,lr # back to tasks address   
+
+    b kernel # start kernel 
 
 swi_handler:
     stmfd r13!,{lr,r0~r2}
