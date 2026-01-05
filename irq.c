@@ -11,9 +11,20 @@ typedef struct
     ubyte_t bare_status;       // 1B
     ubyte_t owned_task_id;     // 1B
     ubyte_t rx_buffer_stat;    // 1B
-    ubyte_t reserved;          // padding --> 3B
+    ubyte_t reserved[3];       // padding --> 3B
 } UART_LICENSE_t;
 
+typedef struct
+{
+    u16_t baudrate;         // 2B
+    ubyte_t enabled;        // 1B
+    ubyte_t tx_enabled;     // 1B
+    ubyte_t rx_enabled;     // 1B
+    ubyte_t tx_irq_enabled; // 1B
+    ubyte_t rx_irq_enabled; // 1B
+    ubyte_t data_size;      // 1B
+    ubyte_t reserved[3];    // padding --> 3B
+} UART_settings_t;
 typedef struct
 {
     u16_t irq_fall_count;

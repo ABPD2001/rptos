@@ -9,6 +9,10 @@
 .eq MINI_UART_BASE #0x7E21
 .eq MINI_UART_STAT #0x5064
 .eq MINI_UART_MU_IO #0x5040
+.eq MINI_UART_BAUDRATE #0x5068
+.eq MINI_UART_AUX_MU #0x5060
+.eq MINI_UART_IIR #0x5044
+.eq MINI_UART_LSR #0x5054
 
 .eq MINI_UART_LICENSE_RX_BUFFER_STAT #0xE
 .eq MINI_UART_LICENSE_OWNED_TASK_ID #0xC
@@ -109,3 +113,57 @@ deallocate_serial:
 
     ldr r1,[r13],#4
     ldr pc,[r13],#4
+
+uart_settings:
+    stmfd r13!,{r1,r2}
+    
+    ldrh r1,[r0]
+    strh [=MINI_UART_BASE,=MINI_UART_BAUDRATE]
+
+    ldr r2,[=MINI_UART_BASE,#0x5004]
+    ldrb r1,[r0,#2]
+    cmp r1,#0
+    orrne r2,r2,#0x0001
+    andeq r2,r2,#0xFFFE
+
+    str r2,[=MINI_UART_BASE,#0x5004]
+    
+    ldr r2,[=MINI_UART_BASE,=MINI_UART_AUX_MU]
+    ldrb r1,[r0,#3]
+
+    cmp r1,#0
+    orrne r2,r2,#0x0001
+    andeq r2,r2,#0xFFFE
+
+    ldrb r1,[r0,#4]
+    
+    cmp r1,#0
+    orrne r2,r2,#0x0002
+    andeq r2,r2,#0xFFFC
+
+    str r2,[=MINI_UART_BASE,=MINI_UART_AUX_MU]
+
+    ldr r2,[=MINI_UART_BASE,=MINI_UART_IIR]
+    ldr r1,[r0,#5]
+
+    cmp r1,#0
+    orrne r2,r2,#0x0001
+    andeq r2,r2,#0xFFFE
+
+    ldr r1,[r0,#6]
+    orrne r2,r2,#0x0002
+    andeq r2,r2,#0xFFFC
+
+    str r2,[=MINI_UART_BASE,=MINI_UART_IIR]
+
+    ldr r1,[r0,#7]
+    ldr r2,[=MINI_UART_BASE,=MINI_UART_LSR]    
+
+    cmp r1,#0
+    orrne r2,r2,#0x0001
+    andeq r2,r2,#0xFFFE
+
+    str r2,[=MINI_UART_BASE,=MINI_UART_LSR]
+
+uart_status_check:
+    # nothing ...
