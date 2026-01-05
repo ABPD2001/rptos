@@ -1,12 +1,12 @@
 .section irq_table
-.org 0x0 schaduler
-.org 0x4 mini_uart_valid_byte
-.org 0x8 mini_uart_tx_empty
-.org 0xc mini_uart_receiver_overrun
-.org 0x10 void_irq
-.org 0x14 unkown_irq
+.org 0x0 ldr pc,=schaduler
+.org 0x4 ldr pc,=mini_uart_valid_byte
+.org 0x8 ldr pc,=mini_uart_tx_empty
+.org 0xc ldr pc,=mini_uart_receiver_overrun
+.org 0x10 ldr pc,=void_irq
+.org 0x14 ldr pc,=unkown_irq
 
-.section irq_handlers
+.section irq_routines
 .eq MINI_UART_RX_BUFFER
 .eq MINI_UART_LICENSE 
 # a byte for owned task_id
@@ -42,8 +42,7 @@
 .eq VOID_IRQ
 
 mini_uart_tx_empty:
-    subs r13,r13,#4
-    str r0,[r13]
+    str r0,[r13,#-4]!
     ldrb r0,[=MINI_UART_LICENSE,=MINI_UART_LICENSE_BARE_STATUS]
     orr r0,r0,#0x1 # set tx fifo is empty bit.
     strb r0,[=MINI_UART_LICENSE,=MINI_UART_LICENSE_BARE_STATUS]
@@ -53,29 +52,25 @@ mini_uart_tx_empty:
     ldr pc,[r0] # back to irq handler.
 
 mini_uart_valid_byte: 
-    subs r13,r13,#4
-    str r0,[r13]
+    str r0,[r13,#-4]!
     
     ldr r1,[=MINI_UART_LICENSE,=MINI_UART_LICENSE_RX_BUFFER_LEN]
     ldr r0,[=MINI_UART_LICENSE,=MINI_UART_RX_BUFFER_STAT] # check rx buffer if is free.
     and r0,r0,#0x4
     cmp r0,#0x4
 
-    ldreq r0,[r13]
-    addeq r13,r13,#4
+    ldreq r0,[r13],#4
     ldreq pc,[r0] # back to irq handler.
     ldrb r0,[=MINI_UART_BASE,=MINI_UART_MU_IO] # read byte.
     strb r0,[=MINI_UART_LICENSE,r1]
     add r1,r1,#1 # update length of buffer.
     str r1,[=MINI_UART_LICENSE,=MINI_UART_LICENSE_RX_BUFFER_LEN] # store current length.
 
-    ldr r0,[r13]
-    add r13,r13,#4
+    ldr r0,[r13],#4
     ldr pc,[r0]
 
 mini_uart_receiver_overrun:
-    subs r13,r13,#4
-    str r0,[r13]
+    str r0,[r13,#-4]!
 
     ldrb r0,[=MINI_UART_LICENSE,=MINI_UART_MU_IO] # discard current bit.
     ldr r1,[=MINI_UART_LICENSE,=MINI_UART_LICENSE_RX_BUFFER_LEN]
@@ -83,30 +78,25 @@ mini_uart_receiver_overrun:
     add r1,r1,#1 # update length of buffer.
     str r1,[=MINI_UART_LICENSE,=MINI_UART_LICENSE_RX_BUFFER_LEN] # store current length.
 
-    ldr r0,[r13]
-    add r13,r13,#4
+    ldr r0,[r13],#4
     ldr pc,[r0]
 
 void_irq:
-    subs r13,r13,#4
-    str r0,[r13]
+    str r0,[r13,#-4]!
 
     mov r0,#0
     strb r0,[=VOID_IRQ]
 
-    ldr r0,[r13]
-    add r13,r13,#4
+    ldr r0,[r13],#4
     ldr pc,[r0]
 
 unkown_irq:
-    subs r13,r13,#4
-    str r0,[r13]
+    str r0,[r13,#-4]!
 
     ldrh r0,[=SYSTEM_STAT,=SYSTEM_STAT_IRQ_FALL_COUNT] # get current irq fall counts.
     add r0,r0,#1
 
     strh r0,[=SYSTEM_STAT,=SYSTEM_STAT_IRQ_FALL_COUNT] # store new irq fall counts.
 
-    ldr r0,[r13]
-    add r13,r13,#4
+    ldr r0,[r13],#4
     ldr pc,[r0]
