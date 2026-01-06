@@ -148,13 +148,13 @@ uart_settings:
 
     cmp r1,#0
     orrne r2,r2,#1
-    andeq r2,r2,#0xFFFE # this
+    andeq r2,r2,#0xFFFFFFFE
 
     ldrb r1,[r0,#4]
     
     cmp r1,#0
     orrne r2,r2,#2
-    andeq r2,r2,#0xFFFC # this
+    andeq r2,r2,#0xFFFFFFFC
 
     str r2,[=MINI_UART_BASE,=MINI_UART_MU_CNTL]
 
@@ -167,7 +167,7 @@ uart_settings:
 
     ldr r1,[r0,#6]
     orrne r2,r2,#2
-    andeq r2,r2,#0xFFFC # this
+    andeq r2,r2,#0xFFFFFFC 
 
     str r2,[=MINI_UART_BASE,=MINI_UART_IIR]
 
@@ -176,7 +176,7 @@ uart_settings:
 
     cmp r1,#0
     orrne r2,r2,#1
-    andeq r2,r2,#0xFFFE # this
+    andeq r2,r2,#0xFFFFFFFE
 
     str r2,[=MINI_UART_BASE,=MINI_UART_LSR]
     mov r0,#0
@@ -212,22 +212,22 @@ uart_status_check:
     and r1,r1,#8
 
     cmp r0,#4
-    orreq r2,r2,#0x20 # this
+    orreq r2,r2,#0x20 
     
     cmp r1,#8
-    orreq r1,r1,#0x10 # this
+    orreq r1,r1,#0x10
 
     ldr r0,[=MINI_UART_BASE,=MINI_UART_LSR]
     and r0,r0,#1
 
     cmp r0,#1
-    orreq r2,#0x40 # this
+    orreq r2,#0x40
 
     ldr r0,[=MINI_UART_BASE,=MINI_UART_PREF]
     and r0,r0,#1
     
     cmp r0,#1
-    orreq r2,#0x80 # this
+    orreq r2,#0x80 #
 
     str r2,[=MINI_UART_LICENSE,=MINI_UART_LICENSE_BARE_STATUS]
     mov r0,r2
