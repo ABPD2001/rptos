@@ -8,10 +8,8 @@ typedef struct
     u32_t *uart_buffer_length; // 4B
     u32_t *uart_buffer_size;   // 4B
     u16_t baudrate;            // 2B
-    ubyte_t bare_status;       // 1B
+    ubyte_t bare_status;       // 1B --> tx fifo empty | rx buffer panic/overflow | tx enabled | rx enabled | tx is idle | rx is idle | data type (7-8 bits mode) | mini uart enabled
     ubyte_t owned_task_id;     // 1B
-    ubyte_t rx_buffer_stat;    // 1B
-    ubyte_t reserved[3];       // padding --> 3B
 } UART_LICENSE_t;
 
 typedef struct

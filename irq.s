@@ -7,25 +7,6 @@
 .org 0x14 ldr pc,=unkown_irq
 
 .section irq_routines 
-# a byte for owned task_id
-# bare-status includes these in a byte:
-# 1- tx fifo empty.
-# 2- rx buffer panic/overflow. 
-# 3- tx enabled.
-# 4- rx enabled.
-# 5- tx is idle.
-# 6- rx is idle.
-# 7- data type (7-8 bits mode).
-# 8- mini uart enabled.
-# and two bytes for baudrate (16-bit baudrate).
-# four byte for uart buffer length.
-# a four byte for rx buffering topics that includes:
-# 1- receiver overrun.
-# 2- one byte free space at least. 
-# 3~8- reserved.
-# (3 bytes reserved.)
-
-.eq MINI_UART_LICENSE_RX_BUFFER_STAT #0xE
 .eq MINI_UART_LICENSE_OWNED_TASK_ID #0xC
 .eq MINI_UART_LICENSE_BARE_STATUS #0xB
 .eq MINI_UART_LICENSE_BAUDRATE #0xA
@@ -74,11 +55,14 @@ mini_uart_valid_byte:
     ldr r2,[r2] # point to buffer size.
     ldr r1,[r1] # point to buffer length.
     ldr r0,[r0] # point to buffer.
-    cmp r1,r2
+    cmp r1,r2 # compare buffer length and size.
 
     ldrge r0,[=SYSTEM_STAT,=SYSTEM_STAT_SERIAL_CHAR_MISS]
     add r0,r0,#1
     strge r0,[=SYSTEM_STAT,=SYSTEM_STAT_SERIAL_CHAR_MISS]
+    ldrge r0,[=MINI_UART_LICENSE,=MINI_UART_LICENSE_BARE_STATUS] # read mini uart license.
+    orrge r0,r0,#0x2 # turn on overflow bit.
+    strge r0,[=MINI_UART_LICENSE,=MINI_UART_LICENSE_BARE_STATUS] # store mini uart license.
     ldrge r0,[r13],#4
     ldrge pc,[r0]
 
