@@ -29,7 +29,7 @@
 .eq GPIO_GPFSEL0 #0x0
 
 protected_write:
-    and r0,r0,#0x000F
+    and r0,r0,#0x000000FF
     stmfd r13!,{r0,r1}
     
     ldr r0,[=MINI_UART_LICENSE,=MINI_UART_LICENSE_OWNED_TASK_ID]
@@ -40,8 +40,8 @@ protected_write:
     ldrne pc,[r13],#4
 
     ldr r0,[=MINI_UART_LICENSE,=MINI_UART_LICENSE_BARE_STATUS] # check if mini-uart its empty.
-    and r0,r0,#0x01
-    cmp r0,#0x01
+    and r0,r0,#1
+    cmp r0,#1
     
     movne r0,#2 # 2 means: mini-uart is full.
     ldrne r1,[r13],#4
@@ -58,7 +58,7 @@ protected_write:
     ldmfd r13!,{r1,pc} # quit routine.
 
 write:
-    and r0,r0,#0x000F
+    and r0,r0,#0x000000FF
     str r0,[r13,-#4]!
     
     ldr r0,[=MINI_UART_LICENSE,=MINI_UART_LICENSE_OWNED_TASK_ID]
@@ -88,7 +88,7 @@ read:
 allocate_serial:
     str r1,[r13,-#4]!
     mov r1,r0
-    and r1,r1,#0x000F
+    and r1,r1,#0x000000FF
     ldr r0,[=MINI_UART_LICENSE,=MINI_UART_LICENSE_OWNED_TASK_ID]
     cmp r0,r1
 
@@ -135,8 +135,8 @@ uart_settings:
     ldr r2,[=MINI_UART_BASE,=MINI_UART_PREF]
     ldrb r1,[r0,#2]
     cmp r1,#0
-    orrne r2,r2,#0x0001
-    andeq r2,r2,#0xFFFE
+    orrne r2,r2,#1
+    andeq r2,r2,#0xFFFFFFFE
 
     str r2,[=MINI_UART_BASE,=MINI_UART_PREF]
     
@@ -147,14 +147,14 @@ uart_settings:
     ldrb r1,[r0,#3]
 
     cmp r1,#0
-    orrne r2,r2,#0x0001
-    andeq r2,r2,#0xFFFE
+    orrne r2,r2,#1
+    andeq r2,r2,#0xFFFE # this
 
     ldrb r1,[r0,#4]
     
     cmp r1,#0
-    orrne r2,r2,#0x0002
-    andeq r2,r2,#0xFFFC
+    orrne r2,r2,#2
+    andeq r2,r2,#0xFFFC # this
 
     str r2,[=MINI_UART_BASE,=MINI_UART_MU_CNTL]
 
@@ -162,12 +162,12 @@ uart_settings:
     ldr r1,[r0,#5]
 
     cmp r1,#0
-    orrne r2,r2,#0x0001
+    orrne r2,r2,#1
     andeq r2,r2,#0xFFFFFFFE
 
     ldr r1,[r0,#6]
-    orrne r2,r2,#0x0002
-    andeq r2,r2,#0xFFFC
+    orrne r2,r2,#2
+    andeq r2,r2,#0xFFFC # this
 
     str r2,[=MINI_UART_BASE,=MINI_UART_IIR]
 
@@ -175,8 +175,8 @@ uart_settings:
     ldr r2,[=MINI_UART_BASE,=MINI_UART_LSR]    
 
     cmp r1,#0
-    orrne r2,r2,#0x0001
-    andeq r2,r2,#0xFFFE
+    orrne r2,r2,#1
+    andeq r2,r2,#0xFFFE # this
 
     str r2,[=MINI_UART_BASE,=MINI_UART_LSR]
     mov r0,#0
@@ -196,38 +196,38 @@ uart_status_check:
     ldr r0,[=MINI_UART_BASE,=MINI_UART_MU_CNTL]
     mov r1,r0
     
-    and r0,r0,#0x1
-    and r1,r1,#0x2
+    and r0,r0,#1
+    and r1,r1,#2
 
-    cmp r0,#0x1
-    orreq r2,r2,#0x8
+    cmp r0,#1
+    orreq r2,r2,#8
 
-    cmp r1,#0x2
-    orreq r2,r2,#0x4
+    cmp r1,#2
+    orreq r2,r2,#4
 
     ldr r0,[=MINI_UART_BASE,=MINI_UART_STAT]
     mov r1,r0
 
-    and r0,r0,#0x4
-    and r1,r1,#0x8
+    and r0,r0,#4
+    and r1,r1,#8
 
-    cmp r0,#0x4
-    orreq r2,r2,#0x20
+    cmp r0,#4
+    orreq r2,r2,#0x20 # this
     
-    cmp r1,#0x8
-    orreq r1,r1,#0x10
+    cmp r1,#8
+    orreq r1,r1,#0x10 # this
 
     ldr r0,[=MINI_UART_BASE,=MINI_UART_LSR]
-    and r0,r0,#0x1
+    and r0,r0,#1
 
-    cmp r0,#0x1
-    orreq r2,#0x40
+    cmp r0,#1
+    orreq r2,#0x40 # this
 
     ldr r0,[=MINI_UART_BASE,=MINI_UART_PREF]
-    and r0,r0,#0x1
+    and r0,r0,#1
     
-    cmp r0,#0x1
-    orreq r2,#0x80
+    cmp r0,#1
+    orreq r2,#0x80 # this
 
     str r2,[=MINI_UART_LICENSE,=MINI_UART_LICENSE_BARE_STATUS]
     mov r0,r2

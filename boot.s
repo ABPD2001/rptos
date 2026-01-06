@@ -67,10 +67,10 @@ fiq_handler:
 
 irq_routine_identifier:
     ldr r0,[=SYSTEM_TIMER_BASE] # read cs register in system timer.
-    and r0,r0,#0x0001
-    cmp r0,#0x0001
+    and r0,r0,#1
+    cmp r0,#1
     ldreq r0,[=SYSTEM_TIMER_BASE]
-    and r0,r0,#0x0003
+    and r0,r0,#3
     streq r0,[=SYSTEM_TIMER_BASE] # remove SYSTEM_TIMER_C0_IRQ mask.
     moveq r2,#0
     moveq pc,lr
@@ -81,32 +81,32 @@ irq_routine_identifier:
     movge pc,lr
 
     ldr r0,[=MINI_UART_BASE,=MINI_UART_IER_REG] # check if mini uart irq is pending (continue if is pending).
-    and r0,r0,#0x0001
+    and r0,r0,#1
     cmp r0,#0
     movne r2,#5 # unkown irq detected.
     movne pc,lr
 
     ldr r0,[=MINI_UART_BASE,=MINI_UART_LSR_REG] # check for reciver overrun.
-    and r0,r0,#0x0002
-    cmp r0,#0x0002
+    and r0,r0,#2
+    cmp r0,#2
     moveq r2,#3
     moveq pc,lr
 
     ldr r0,[=MINI_UART_BASE,=MINI_UART_IER_REG] # read mini uart offset.
     mov r1,r0
-    and r0,r0,#0x0004
-    cmp r0,#0x0004
+    and r0,r0,#4
+    cmp r0,#4
     moveq r2,r2,#1
     ldreq r0,[=MINI_UART_BASE,=MINI_UART_IER_REG]
-    orreq r0,r0,#0x0002
+    orreq r0,r0,#2
     streq r0,[=MINI_UART_BASE,=MINI_UART_IER_REG] # remove mini uart RX_FIFO_IRQ mask.
     moveq pc,lr
 
-    and r1,r1,#0x0002
-    cmp r1,#0x0002
+    and r1,r1,#2
+    cmp r1,#2
     moveq r2,#2
     ldreq r0,[=MINI_UART_BASE,=MINI_UART_IER_REG]
-    orreq r0,r0,#0x004
+    orreq r0,r0,#4
     streq r0,[=MINI_UART_BASE,=MINI_UART_IER_REG] # remove mini uart TX_FIFO_IRQ mask.
     moveq pc,lr
 
@@ -148,7 +148,7 @@ swi_handler:
     msr spsr_svc, r0 
     str r0,[r13,-#4]!  # minimum context saved.
     
-    and r2,lr,#0x000F # read requested swi id.
+    and r2,lr,#0xFF000000 # read requested swi id.
 
     mov r1,r13 # save stack address to r1 (for passing to svc mode).
     msr cpsr_c,r0
