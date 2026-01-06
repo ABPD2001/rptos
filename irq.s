@@ -26,7 +26,7 @@
 mini_uart_tx_empty:
     str r0,[r13,#-4]!
     ldrb r0,[=MINI_UART_LICENSE,=MINI_UART_LICENSE_BARE_STATUS]
-    orr r0,r0,#0x1 # set tx fifo is empty bit.
+    orr r0,r0,#1 # set tx fifo is empty bit.
     strb r0,[=MINI_UART_LICENSE,=MINI_UART_LICENSE_BARE_STATUS]
 
     ldr r0,[r13]
@@ -61,7 +61,7 @@ mini_uart_valid_byte:
     add r0,r0,#1
     strge r0,[=SYSTEM_STAT,=SYSTEM_STAT_SERIAL_CHAR_MISS]
     ldrge r0,[=MINI_UART_LICENSE,=MINI_UART_LICENSE_BARE_STATUS] # read mini uart license.
-    orrge r0,r0,#0x2 # turn on overflow bit.
+    orrge r0,r0,#2 # turn on overflow bit.
     strge r0,[=MINI_UART_LICENSE,=MINI_UART_LICENSE_BARE_STATUS] # store mini uart license.
     ldrge r0,[r13],#4
     ldrge pc,[r0]
