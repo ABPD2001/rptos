@@ -1,0 +1,1 @@
+arm-none-eabi-gcc -Wall -O2 -ffreestanding -nostdlib -nostartfiles -mcpu=arm1176jzf-s -T linker.ld *.s utils/*.s preipherals/*.c *.c -o kernel.elf && arm-none-eabi-objcopy kernel.elf -O binary kernel.img
