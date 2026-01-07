@@ -124,7 +124,7 @@ irq_handler: # reentrant irq handler
     
     stmfd r13!,{lr,r0~r2}
     msr spsr_irq, r0 
-    str r0,[r13,-#4]!  # minimum context saved.
+    str r0,[r13,#-4]!  # minimum context saved.
     
     bl irq_routine_identifier # find triggred irq.    
 
@@ -143,7 +143,7 @@ irq_handler: # reentrant irq handler
     mul r1,r1,r2
     add r1,=IRQ_TABLE # find ISR address via IRQ_TABLE.
 
-    str pc,[r13,-#4]!
+    str pc,[r13,#-4]!
     mov pc,r1 # go to ISR.
 
     # note: we should add a return instruction to this block in end of ISR (for returning to return address).
@@ -156,7 +156,7 @@ swi_handler:
     # 76 B
     stmfd r13!,{lr,r0~r2}
     msr spsr_svc, r0 
-    str r0,[r13,-#4]!  # minimum context saved.
+    str r0,[r13,#-4]!  # minimum context saved.
     
     and r2,lr,#0xFF000000 # read requested swi id.
 
@@ -171,7 +171,7 @@ swi_handler:
     add r1,r1,=SWI_TABLE # find ISR address via SWI_TABLE.
     mov lr,r1
 
-    str pc,[r13,-#4]!
+    str pc,[r13,#-4]!
     ldmfd r13!,{r2,r1,r0}
     str pc,[r13,#-4]!
     mov pc,lr # go to routine.

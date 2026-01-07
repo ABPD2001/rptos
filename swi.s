@@ -73,7 +73,7 @@ protected_write_str:
     ldrne pc,[r13],#4
     
     ldr r0,[r13],#4
-    str pc,[r13,-#4]
+    str pc,[r13,#-4]
     b protected_write_str_loop # start loop to navigate the buffer.
 
     ldrb r1,[=MINI_UART_LICENSE,=MINI_UART_LICENSE_BARE_STATUS] # read mini-uart access.
@@ -118,7 +118,7 @@ write:
     # 40 B
 
     and r0,r0,#0x000000FF
-    str r0,[r13,-#4]!
+    str r0,[r13,#-4]!
     
     ldr r0,[=MINI_UART_LICENSE,=MINI_UART_LICENSE_OWNED_TASK_ID]
     cmp r0,r2
@@ -149,7 +149,7 @@ read:
 
 allocate_serial:
     # 48 B
-    str r1,[r13,-#4]!
+    str r1,[r13,#-4]!
     mov r1,r0
     and r1,r1,#0x000000FF
     ldr r0,[=MINI_UART_LICENSE,=MINI_UART_LICENSE_OWNED_TASK_ID]
@@ -168,7 +168,7 @@ allocate_serial:
 
 deallocate_serial:
     # 44 B
-    str r1,[r13,-#4]!
+    str r1,[r13,#-4]!
     
     ldr r1,[=MINI_UART_LICENSE,=MINI_UART_LICENSE_OWNED_TASK_ID]
     cmp r1,r0
