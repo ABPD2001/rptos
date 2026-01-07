@@ -6,33 +6,33 @@
 
 .ltorg
 .section .vector_handlers
-.eq SVC_MODE #0x13
-.eq IRQ_MODE #0x12
-.eq FIQ_MODE #0x11
-.eq USR_MODE #0x10
+.set SVC_MODE #0x13
+.set IRQ_MODE #0x12
+.set FIQ_MODE #0x11
+.set USR_MODE #0x10
 
-.eq CLR_MODE #0xE0
+.set CLR_MODE #0xE0
 
-.eq SVC_STACK #0x1020
-.eq IRQ_STACK #0x1420
-.eq FIQ_STACK #0x1620
+.set SVC_STACK #0x1020
+.set IRQ_STACK #0x1420
+.set FIQ_STACK #0x1620
 
-.eq IRQ_ENABLE #0x40
+.set IRQ_ENABLE #0x40
 
-.eq SYSTEM_TIMER_BASE #0x7E003000 # note: cs is 0x0 offset.
-.eq C0_SYSTEM_TIMER_MATCH_OFFSET #0xC
+.set SYSTEM_TIMER_BASE #0x7E003000 # note: cs is 0x0 offset.
+.set C0_SYSTEM_TIMER_MATCH_OFFSET #0xC
 
-.eq MINI_UART_BASE #0x7E21
-.eq MINI_UART_IER_REG #0x5048
-.eq MINI_UART_LSR_REG #0x5054
+.set MINI_UART_BASE #0x7E21
+.set MINI_UART_IER_REG #0x5048
+.set MINI_UART_LSR_REG #0x5054
 
-.eq MINI_UART_LICENSE #0x1B14 # ownership of mini uart by tasks or hardware limitation.
+.set MINI_UART_LICENSE #0x1B14 # ownership of mini uart by tasks or hardware limitation.
 
-.eq VOID_IRQ #0x1B54
+.set VOID_IRQ #0x1B54
 
-.eq SWI_TABLE #0x163C
+.set SWI_TABLE #0x163C
 
-.eq IRQ_TABLE #0x1624
+.set IRQ_TABLE #0x1624
 
 reset_handler:
     # 64 B
