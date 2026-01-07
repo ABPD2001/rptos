@@ -2,10 +2,11 @@
 .org 0x0 ldr pc,=protected_write 
 .org 0x4 ldr pc,=write
 .org 0x8 ldr pc,=read
-.org 0xc ldr pc,=allocate_serial
+.org 0xC ldr pc,=allocate_serial
 .org 0x10 ldr pc,=deallocate_serial
 .org 0x14 ldr pc,=uart_settings
 .org 0x18 ldr pc,=uart_status_check
+.org 0x20 ldr pc,=toggle_onboard_led
 
 .section swi_routines
 .eq MINI_UART_BASE #0x7E21
@@ -27,6 +28,17 @@
 
 .eq GPIO_BASE #0x7E20
 .eq GPIO_GPFSEL0 #0x0
+.eq GPIO_GPFSEL1 #0x4
+.eq GPIO_GPFSEL2 #0x8
+.eq GPIO_GPFSEL3 #0xC
+.eq GPIO_GPFSEL4 #0x10
+.eq GPIO_GPFSEL5 #0x14
+
+.eq GPIO_GPSET0 #0x001C
+.eq GPIO_GPSET1 #0x0020
+
+.eq GPIO_GPCLR0 #0x0028
+.eq GPIO_GPCLR1 #0x002C
 
 protected_write:
     and r0,r0,#0x000000FF
@@ -136,13 +148,14 @@ uart_settings:
     ldrb r1,[r0,#2]
     cmp r1,#0
     orrne r2,r2,#1
-    andeq r2,r2,#0xFFFFFFFE
+    andeq r2,r2,#0xFFFFFFFE # turn off mini-uart enablation bit.
 
     str r2,[=MINI_UART_BASE,=MINI_UART_PREF]
     
-    ldr r2,[=GPIO_BASE,=GPIO_GPFSEL0]
-    
-    
+    ldr r2,[=GPIO_BASE,=GPIO_GPFSEL1] # enable pin 14,15 function mode for mini uart (alternative function 5)
+    and r2,r2,#0xFFF60FFF
+    orr r2,r2,#0xFFF72FFF
+
     ldr r2,[=MINI_UART_BASE,=MINI_UART_MU_CNTL]
     ldrb r1,[r0,#3]
 
@@ -189,7 +202,7 @@ uart_status_check:
 
     cmp r0,r1
     movne r0,#1
-    ldmfdne r13!,{r1,pc}
+    ldmfdne r13!,{r2,r1,pc}
 
     ldr r2,[=MINI_UART_LICENSE,=MINI_UART_LICENSE_BARE_STATUS]
 
@@ -227,7 +240,7 @@ uart_status_check:
     and r0,r0,#1
     
     cmp r0,#1
-    orreq r2,#0x80 #
+    orreq r2,#0x80 
 
     str r2,[=MINI_UART_LICENSE,=MINI_UART_LICENSE_BARE_STATUS]
     mov r0,r2
@@ -235,3 +248,55 @@ uart_status_check:
     ldmfd r13!,{r2,r1,pc} 
 
 
+@ gpio_set_mode: # pin 14,15 are not allowed to use (its busy by serial).
+@     cmp r0,#14
+@     cmpeq r1,#1
+@     ldreq pc,[r13],#4 # test for pin 14
+
+@     cmp r0,#15
+@     cmpeq r1,#1
+@     ldreq pc,[r13],#4 # test for pin 15
+
+@     stmfd r13!,{r1-r4} # save minimum context
+
+@     mul r4,r1,#4
+@     mul r3,#3,r0
+
+@     mov r0,#1,LSL r3
+@     sub r3,r3,#1
+@     mov r1,#1,LSL r3
+@     sub r3,r3,#1
+@     mov r2,#1,LSL r3
+
+@     orr r0,r0,r1
+@     orr r0,r0,r2
+@     orr r0,r0,r3
+
+@     mvn r0,r0
+
+@     ldr r1,[=GPIO_BASE,r4]
+@     and r1,r1,r0
+
+@     ldr r2,[r13,#8] # restore nth of pin.
+
+toggle_onboard_led:
+    stmfd r13!,{r0-r2}
+
+    ldr r0,[=GPIO_BASE,=GPIO_GPCLR1]
+    ldr r1,[=GPIO_BASE,=GPIO_GPSET1]
+
+    mov r2,#1,LSL #14
+    
+    and r0,r0,r2
+    and r1,r1,r2
+
+    cmp r0,r2
+    ldreq r0,[=GPIO_BASE,=GPIO_GPCLR1]
+    orreq r0,r0,r2
+    streq r0,[=GPIO_BASE,=GPIO_GPCLR1]
+    ldmfdeq r13!,{r2,r1,r0,pc}
+
+    ldr r1,[=GPIO_BASE,=GPIO_GPSET1]
+    orr r1,r1,r2
+    str r1,[=GPIO_BASE,=GPIO_GPSET1]
+    ldmfd r13!,{r2,r1,r0,pc}
