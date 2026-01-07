@@ -5,11 +5,10 @@ int serial_protected_write(char *chars)
     volatile int *license_bare_status = MINI_UART_LICENSE + MINI_UART_LICENSE_BARE_STATUS;
     volatile int *mini_uart_mu_io = MINI_UART_BASE + MINI_UART_MU_IO;
 
-    if (*license_bare_status & 0b1)
-        return 1;
-
     while (1)
     {
+        if (*license_bare_status & 0b1)
+            continue;
         if (*chars == NULL)
             break;
         *(mini_uart_mu_io) &= 0xFFFFFF00; // clear byte in
@@ -115,4 +114,5 @@ void serial_settings(UART_settings_t *settings)
         *iir |= 0b10; // enable receiver irq.
     else
         *iir &= 0xFFFFFFFD; // disable receiver irq.
+    toggle_led();
 }
