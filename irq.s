@@ -36,8 +36,8 @@ mini_uart_tx_empty:
 mini_uart_valid_byte: 
     stmfd r13!,{r0,r3}
 
-    ldr r2,[=MINI_UART_LICENSE,=MINI_UART_LICENSE_RX_BUFFER_LEN] # check if buffer even created (by size).
-    ldr r1,[=MINI_UART_LICENSE,=MINI_UART_LICENSE_RX_BUFFER_LEN] # check if buffer even created (by size).
+    ldr r2,[=MINI_UART_LICENSE,=MINI_UART_LICENSE_RX_BUFFER_SIZE] # check if buffer even created (by size).
+    ldr r1,[=MINI_UART_LICENSE,=MINI_UART_LICENSE_RX_BUFFER_LEN] # check if buffer even created (by length).
     ldr r0,[=MINI_UART_LICENSE,=MINI_UART_LICENSE_RX_BUFFER] # check if buffer even created.
     
     cmp r0,#0
@@ -52,13 +52,11 @@ mini_uart_valid_byte:
     ldreq r0,[r13],#4
     ldreq pc,[r0]
 
-    ldr r2,[r2] # point to buffer size.
-    ldr r1,[r1] # point to buffer length.
     ldr r0,[r0] # point to buffer.
     cmp r1,r2 # compare buffer length and size.
 
     ldrge r0,[=SYSTEM_STAT,=SYSTEM_STAT_SERIAL_CHAR_MISS]
-    add r0,r0,#1
+    addge r0,r0,#1
     strge r0,[=SYSTEM_STAT,=SYSTEM_STAT_SERIAL_CHAR_MISS]
     ldrge r0,[=MINI_UART_LICENSE,=MINI_UART_LICENSE_BARE_STATUS] # read mini uart license.
     orrge r0,r0,#2 # turn on overflow bit.

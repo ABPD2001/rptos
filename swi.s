@@ -4,8 +4,8 @@
 .org 0x8 ldr pc,=read
 .org 0xC ldr pc,=allocate_serial
 .org 0x10 ldr pc,=deallocate_serial
-.org 0x14 ldr pc,=uart_settings
-.org 0x18 ldr pc,=uart_status_check
+.org 0x14 ldr pc,=setial_settings
+.org 0x18 ldr pc,=serial_status_check
 .org 0x20 ldr pc,=toggle_onboard_led
 
 .section swi_routines
@@ -17,7 +17,9 @@
 .eq MINI_UART_LSR #0x5054
 .eq MINI_UART_MU_CNTL #0x5060 
 .eq MINI_UART_PREF #0x5004
+.eq MINI_UART_LCR #0x504C
 
+.eq MINI_UART_LICENSE # ownership of mini uart by tasks or hardware limitation.
 .eq MINI_UART_LICENSE_RX_BUFFER_STAT #0xE
 .eq MINI_UART_LICENSE_OWNED_TASK_ID #0xC
 .eq MINI_UART_LICENSE_BARE_STATUS #0xB
@@ -93,6 +95,8 @@ read:
     ldrne pc,[r13],#4
 
     str r0,[=MINI_UART_LICENSE,=MINI_UART_RX_BUFFER]
+    str r1,[=MINI_UART_LICENSE,=MINI_UART_LICENSE_RX_BUFFER_LEN]
+    str r2,[=MINI_UART_LICENSE,=MINI_UART_LICENSE_RX_BUFFER_SIZE]
     mov r0,#0 # 0 means: done.
 
     ldr pc,[r13],#4
@@ -111,9 +115,6 @@ allocate_serial:
     ldr r1,[r13],#4
     
     strb r0,[=MINI_UART_LICENSE,=MINI_UART_LICENSE_OWNED_TASK_ID]
-    str r1,[=MINI_UART_LICENSE,=MINI_UART_RX_BUFFER]
-    str r2,[=MINI_UART_LICENSE,=MINI_UART_LICENSE_RX_BUFFER_LEN]
-    str r3,[=MINI_UART_LICENSE,=MINI_UART_LICENSE_RX_BUFFER_SIZE]
     mov r0,#0
 
     ldr pc,[r13],#4
@@ -131,7 +132,7 @@ deallocate_serial:
 
     ldmfd r13!,{r1,pc}
 
-uart_settings:
+setial_settings:
     stmfd r13!,{r1,r2}
 
     mov r2,r1
@@ -147,7 +148,7 @@ uart_settings:
     ldr r2,[=MINI_UART_BASE,=MINI_UART_PREF]
     ldrb r1,[r0,#2]
     cmp r1,#0
-    orrne r2,r2,#1
+    orrne r2,r2,#1 # turn on mini-uart enablation bit.
     andeq r2,r2,#0xFFFFFFFE # turn off mini-uart enablation bit.
 
     str r2,[=MINI_UART_BASE,=MINI_UART_PREF]
@@ -175,17 +176,17 @@ uart_settings:
     ldr r1,[r0,#5]
 
     cmp r1,#0
-    orrne r2,r2,#1
-    andeq r2,r2,#0xFFFFFFFE
+    orrne r2,r2,#1 # turn on receiver bit.
+    andeq r2,r2,#0xFFFFFFFE # turn off receiver bit.
 
     ldr r1,[r0,#6]
-    orrne r2,r2,#2
-    andeq r2,r2,#0xFFFFFFC 
+    orrne r2,r2,#2 # turn on transmitter bit.
+    andeq r2,r2,#0xFFFFFFC # turn off transmitter bit.
 
     str r2,[=MINI_UART_BASE,=MINI_UART_IIR]
 
     ldr r1,[r0,#7]
-    ldr r2,[=MINI_UART_BASE,=MINI_UART_LSR]    
+    ldr r2,[=MINI_UART_BASE,=MINI_UART_LCR]    
 
     cmp r1,#0
     orrne r2,r2,#1
@@ -195,7 +196,7 @@ uart_settings:
     mov r0,#0
     ldm r13!,{r2,r1,pc}
 
-uart_status_check:
+serial_status_check:
     stmfd r13!,{r1,r2}
     mov r1,r0
     ldrb r0,[=MINI_UART_LICENSE,=MINI_UART_LICENSE_OWNED_TASK_ID]
