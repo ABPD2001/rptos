@@ -1,1 +1,2 @@
 kernel_address=0
+arm_control=0x200

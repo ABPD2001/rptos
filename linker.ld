@@ -16,20 +16,21 @@ SECTIONS {
     .vector_handlers:{
         *(.vector_handlers)
     }
-    . = 0x1794;
+    
+    . = 0x1798; 
     .swi_routines:{
         *(.swi_routines)
     }
-    . = 0x1A2C;
+    . = 0x1A30; 
     .irq_routines:{
         *(.irq_routines)
     }
-    . = 0x1B84;
+    . = 0x1B88; 
     .text:{
         *(.text)
     }
     .rodata:{
-*(.rodata)
+        *(.rodata)
     }
     .data:{*(.data)}
     .bss:{*(.bss)}

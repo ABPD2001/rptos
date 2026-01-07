@@ -4,6 +4,7 @@
 .org 0x18 irq_handler
 .org 0x1c fiq_handler 
 
+.ltorg
 .section .vector_handlers
 .eq SVC_MODE #0x13
 .eq IRQ_MODE #0x12
@@ -25,9 +26,9 @@
 .eq MINI_UART_IER_REG #0x5048
 .eq MINI_UART_LSR_REG #0x5054
 
-.eq MINI_UART_LICENSE # ownership of mini uart by tasks or hardware limitation.
+.eq MINI_UART_LICENSE #0x1B14 # ownership of mini uart by tasks or hardware limitation.
 
-.eq VOID_IRQ #0x1B50
+.eq VOID_IRQ #0x1B54
 
 .eq SWI_TABLE #0x163C
 
@@ -146,8 +147,9 @@ irq_handler: # reentrant irq handler
     mov pc,r1 # go to ISR.
 
     # note: we should add a return instruction to this block in end of ISR (for returning to return address).
-    ldmfd r13!,{r2,r1,r0,lr}
-    mov pc,lr # back to tasks address   
+    ldr r0,[r13],#4
+    msr spsr_svc, r0 
+    ldmfd r13!,{r2,r1,r0,pc}^ # back to task space.   
 
 
 swi_handler:
@@ -177,3 +179,5 @@ swi_handler:
     # note: we should add a return instruction to this block in end of routine (for returning to return address).
     ldmfd r13!,{lr}
     mov pc,lr # back to tasks address   
+
+.ltorg

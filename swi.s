@@ -9,8 +9,9 @@
 .org 0x20 ldr pc,=toggle_onboard_led
 .org 0x24 ldr pc,=protected_write_str
 
+.ltorg
 .section swi_routines
-.eq MINI_UART_BASE #0x7E21
+.eq MINI_UART_BASE #0x7E210000
 .eq MINI_UART_STAT #0x5064
 .eq MINI_UART_MU_IO #0x5040
 .eq MINI_UART_BAUDRATE #0x5068
@@ -20,7 +21,7 @@
 .eq MINI_UART_PREF #0x5004
 .eq MINI_UART_LCR #0x504C
 
-.eq MINI_UART_LICENSE #0x1B10 # ownership of mini uart by tasks or hardware limitation.
+.eq MINI_UART_LICENSE #0x1B14 # ownership of mini uart by tasks or hardware limitation.
 .eq MINI_UART_LICENSE_RX_BUFFER_STAT #0xE
 .eq MINI_UART_LICENSE_OWNED_TASK_ID #0xC
 .eq MINI_UART_LICENSE_BARE_STATUS #0xB
@@ -29,7 +30,7 @@
 .eq MINI_UART_LICENSE_RX_BUFFER_LEN #0x4
 .eq MINI_UART_LICENSE_RX_BUFFER #0x0
 
-.eq GPIO_BASE #0x7E20
+.eq GPIO_BASE #0x7E200000
 .eq GPIO_GPFSEL0 #0x0
 .eq GPIO_GPFSEL1 #0x4
 .eq GPIO_GPFSEL2 #0x8
@@ -354,3 +355,5 @@ toggle_onboard_led:
     orr r1,r1,r2
     str r1,[=GPIO_BASE,=GPIO_GPSET1]
     ldmfd r13!,{r2,r1,r0,pc}
+
+.ltorg

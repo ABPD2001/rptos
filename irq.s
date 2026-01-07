@@ -6,7 +6,10 @@
 .org 0x10 ldr pc,=void_irq
 .org 0x14 ldr pc,=unkown_irq
 
+
+.ltorg
 .section irq_routines 
+.eq MINI_UART_LICENSE #0x1B14 # ownership of mini uart by tasks or hardware limitation.
 .eq MINI_UART_LICENSE_OWNED_TASK_ID #0xC
 .eq MINI_UART_LICENSE_BARE_STATUS #0xB
 .eq MINI_UART_LICENSE_BAUDRATE #0xA
@@ -14,10 +17,10 @@
 .eq MINI_UART_LICENSE_RX_BUFFER_LEN #0x4
 .eq MINI_UART_LICENSE_RX_BUFFER #0x0
 
-.eq MINI_UART_BASE #0x7E21
+.eq MINI_UART_BASE #0x7E210000
 .eq MINI_UART_MU_IO #0x5040
 
-.eq SYSTEM_STAT #0x1B30
+.eq SYSTEM_STAT #0x1B34
 .eq SYSTEM_STAT_IRQ_FALL_COUNT #0x4
 .eq SYSTEM_STAT_SERIAL_CHAR_MISS #0x8
 
@@ -111,3 +114,5 @@ unkown_irq:
 
     ldr r0,[r13],#4
     ldr pc,[r0]
+
+.ltorg
