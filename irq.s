@@ -17,13 +17,14 @@
 .eq MINI_UART_BASE #0x7E21
 .eq MINI_UART_MU_IO #0x5040
 
-.eq SYSTEM_STAT
-.eq SYSTEM_STAT_IRQ_FALL_COUNT
-.eq SYSTEM_STAT_SERIAL_CHAR_MISS
+.eq SYSTEM_STAT #0x1B30
+.eq SYSTEM_STAT_IRQ_FALL_COUNT #0x4
+.eq SYSTEM_STAT_SERIAL_CHAR_MISS #0x8
 
-.eq VOID_IRQ
+.eq VOID_IRQ #0x1B50
 
 mini_uart_tx_empty:
+    # 28 B
     str r0,[r13,#-4]!
     ldrb r0,[=MINI_UART_LICENSE,=MINI_UART_LICENSE_BARE_STATUS]
     orr r0,r0,#1 # set tx fifo is empty bit.
@@ -34,6 +35,7 @@ mini_uart_tx_empty:
     ldr pc,[r0] # back to irq handler.
 
 mini_uart_valid_byte: 
+    # 120 B
     stmfd r13!,{r0,r3}
 
     ldr r2,[=MINI_UART_LICENSE,=MINI_UART_LICENSE_RX_BUFFER_SIZE] # check if buffer even created (by size).
@@ -76,6 +78,7 @@ mini_uart_valid_byte:
     ldr pc,[r0]
 
 mini_uart_receiver_overrun:
+    # 28 B
     str r0,[r13,#-4]!
 
     ldrb r0,[=MINI_UART_LICENSE,=MINI_UART_MU_IO] # discard current bit.
@@ -88,6 +91,7 @@ mini_uart_receiver_overrun:
     ldr pc,[r0]
 
 void_irq:
+    # 20 B
     str r0,[r13,#-4]!
 
     mov r0,#0
@@ -97,6 +101,7 @@ void_irq:
     ldr pc,[r0]
 
 unkown_irq:
+    # 30 B
     str r0,[r13,#-4]!
 
     ldrh r0,[=SYSTEM_STAT,=SYSTEM_STAT_IRQ_FALL_COUNT] # get current irq fall counts.

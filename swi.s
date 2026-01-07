@@ -20,7 +20,7 @@
 .eq MINI_UART_PREF #0x5004
 .eq MINI_UART_LCR #0x504C
 
-.eq MINI_UART_LICENSE # ownership of mini uart by tasks or hardware limitation.
+.eq MINI_UART_LICENSE #0x1B10 # ownership of mini uart by tasks or hardware limitation.
 .eq MINI_UART_LICENSE_RX_BUFFER_STAT #0xE
 .eq MINI_UART_LICENSE_OWNED_TASK_ID #0xC
 .eq MINI_UART_LICENSE_BARE_STATUS #0xB
@@ -44,6 +44,7 @@
 .eq GPIO_GPCLR1 #0x002C
 
 protected_write_str_loop:
+    # 20 B
     ldr r1,[r0,#1]
     cmp r1,#0
     ldreq pc,[r13],#4
@@ -51,6 +52,8 @@ protected_write_str_loop:
     b protected_write_str_loop
 
 protected_write_str:
+    # 80 B
+
     stmfd r13!,{r0,r1}
     
     ldr r0,[=MINI_UART_LICENSE,=MINI_UART_LICENSE_OWNED_TASK_ID]
@@ -80,6 +83,8 @@ protected_write_str:
     ldmfd r13!,{r1,pc} # quit routine.
 
 protected_write:
+    # 80 B
+
     and r0,r0,#0x000000FF
     stmfd r13!,{r0,r1}
     
@@ -109,6 +114,8 @@ protected_write:
     ldmfd r13!,{r1,pc} # quit routine.
 
 write:
+    # 40 B
+
     and r0,r0,#0x000000FF
     str r0,[r13,-#4]!
     
@@ -125,6 +132,7 @@ write:
     ldr pc,[r13],#4
 
 read:
+    # 36 B
     ldr r0,[=MINI_UART_LICENSE,=MINI_UART_LICENSE_OWNED_TASK_ID]
     cmp r0,r1
 
@@ -139,6 +147,7 @@ read:
     ldr pc,[r13],#4
 
 allocate_serial:
+    # 48 B
     str r1,[r13,-#4]!
     mov r1,r0
     and r1,r1,#0x000000FF
@@ -157,6 +166,7 @@ allocate_serial:
     ldr pc,[r13],#4
 
 deallocate_serial:
+    # 44 B
     str r1,[r13,-#4]!
     
     ldr r1,[=MINI_UART_LICENSE,=MINI_UART_LICENSE_OWNED_TASK_ID]
@@ -172,6 +182,7 @@ deallocate_serial:
     ldmfd r13!,{r1,pc}
 
 serial_settings:
+    # 180 B
     stmfd r13!,{r1,r2}
 
     mov r2,r1
@@ -236,6 +247,7 @@ serial_settings:
     ldm r13!,{r2,r1,pc}
 
 serial_status_check:
+    # 136 B
     stmfd r13!,{r1,r2}
     mov r1,r0
     ldrb r0,[=MINI_UART_LICENSE,=MINI_UART_LICENSE_OWNED_TASK_ID]
@@ -320,6 +332,8 @@ serial_status_check:
 @     ldr r2,[r13,#8] # restore nth of pin.
 
 toggle_onboard_led:
+    # 60 B
+
     stmfd r13!,{r0-r2}
 
     ldr r0,[=GPIO_BASE,=GPIO_GPCLR1]

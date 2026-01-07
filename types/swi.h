@@ -11,5 +11,4 @@ typedef struct
     ubyte_t tx_irq_enabled; // 1B
     ubyte_t rx_irq_enabled; // 1B
     ubyte_t data_size;      // 1B
-    ubyte_t reserved[3];    // padding --> 3B
-} UART_settings_t;
+} UART_settings_t;          // 8 B

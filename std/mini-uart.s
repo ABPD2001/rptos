@@ -1,4 +1,5 @@
 .global kwrite,kpwrite,kalloc_serial,kfree_serial,kserial_settings,kserial_status_check,ktoggle_led,kpstrwrite
+
 kwrite:
     swi #1
     mov pc,lr

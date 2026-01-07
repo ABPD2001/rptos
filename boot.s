@@ -27,11 +27,15 @@
 
 .eq MINI_UART_LICENSE # ownership of mini uart by tasks or hardware limitation.
 
-.eq VOID_IRQ
+.eq VOID_IRQ #0x1B50
 
-.eq IRQ_TABLE
+.eq SWI_TABLE #0x163C
+
+.eq IRQ_TABLE #0x1624
 
 reset_handler:
+    # 64 B
+
     mov r13,=SVC_STACK
     
     mrs cpsr_c,r0
@@ -54,6 +58,7 @@ reset_handler:
     b kernel # start kernel 
 
 fiq_handler:
+    # 4 B
     bl fiq_handler # dummy handler.
 
 # IRQ IDs:
@@ -66,6 +71,7 @@ fiq_handler:
     
 
 irq_routine_identifier:
+    # 152 B
     ldr r0,[=SYSTEM_TIMER_BASE] # read cs register in system timer.
     and r0,r0,#1
     cmp r0,#1
@@ -112,6 +118,7 @@ irq_routine_identifier:
 
 
 irq_handler: # reentrant irq handler
+    # 76 B
     subs lr,#4 # link register calculation.
     
     stmfd r13!,{lr,r0~r2}
@@ -144,6 +151,7 @@ irq_handler: # reentrant irq handler
 
 
 swi_handler:
+    # 76 B
     stmfd r13!,{lr,r0~r2}
     msr spsr_svc, r0 
     str r0,[r13,-#4]!  # minimum context saved.
