@@ -4,9 +4,10 @@
 .org 0x8 ldr pc,=read
 .org 0xC ldr pc,=allocate_serial
 .org 0x10 ldr pc,=deallocate_serial
-.org 0x14 ldr pc,=setial_settings
+.org 0x14 ldr pc,=serial_settings
 .org 0x18 ldr pc,=serial_status_check
 .org 0x20 ldr pc,=toggle_onboard_led
+.org 0x24 ldr pc,=protected_write_str
 
 .section swi_routines
 .eq MINI_UART_BASE #0x7E21
@@ -41,6 +42,42 @@
 
 .eq GPIO_GPCLR0 #0x0028
 .eq GPIO_GPCLR1 #0x002C
+
+protected_write_str_loop:
+    ldr r1,[r0,#1]
+    cmp r1,#0
+    ldreq pc,[r13],#4
+    strb r1,[=MINI_UART_BASE,=MINI_UART_MU_IO] # write byte into mini uart.
+    b protected_write_str_loop
+
+protected_write_str:
+    stmfd r13!,{r0,r1}
+    
+    ldr r0,[=MINI_UART_LICENSE,=MINI_UART_LICENSE_OWNED_TASK_ID]
+    cmp r0,r2
+
+    movne r0,#1 # 1 means: mini-uart is allocated by other process.
+    ldrne r1,[r13],#4
+    ldrne pc,[r13],#4
+
+    ldr r0,[=MINI_UART_LICENSE,=MINI_UART_LICENSE_BARE_STATUS] # check if mini-uart its empty.
+    and r0,r0,#1
+    cmp r0,#1
+    
+    movne r0,#2 # 2 means: mini-uart is full.
+    ldrne r1,[r13],#4
+    ldrne pc,[r13],#4
+    
+    ldr r0,[r13],#4
+    str pc,[r13,-#4]
+    b protected_write_str_loop # start loop to navigate the buffer.
+
+    ldrb r1,[=MINI_UART_LICENSE,=MINI_UART_LICENSE_BARE_STATUS] # read mini-uart access.
+    and r1,r1,#0xEE # turn off access (tx idle, tx free).
+    strb r1,[=MINI_UART_LICENSE,=MINI_UART_LICENSE_BARE_STATUS] # apply access.
+
+    mov r0,#0 # 0 means: done.
+    ldmfd r13!,{r1,pc} # quit routine.
 
 protected_write:
     and r0,r0,#0x000000FF
@@ -124,6 +161,8 @@ deallocate_serial:
     
     ldr r1,[=MINI_UART_LICENSE,=MINI_UART_LICENSE_OWNED_TASK_ID]
     cmp r1,r0
+    movne r0,#1
+    ldmfdne r13!,{r1,pc}
 
     mov r0,#0
     str r0,[=MINI_UART_LICENSE,=MINI_UART_LICENSE_RX_BUFFER]
@@ -132,7 +171,7 @@ deallocate_serial:
 
     ldmfd r13!,{r1,pc}
 
-setial_settings:
+serial_settings:
     stmfd r13!,{r1,r2}
 
     mov r2,r1

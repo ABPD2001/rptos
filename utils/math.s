@@ -1,3 +1,5 @@
+.global max,min
+
 max:
     cmp r0,r1
     movge r0,r0

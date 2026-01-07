@@ -39,4 +39,5 @@
 typedef unsigned char ubyte_t;
 typedef unsigned short int u16_t;
 typedef unsigned int u32_t;
+typedef unsigned long u64_t;
 #endif
